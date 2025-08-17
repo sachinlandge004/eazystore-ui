@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import ProductCard from "./ProductCard";
 import SearchBox from "./SearchBox";
 import Dropdown from "./Dropdown";
@@ -8,6 +8,27 @@ const sortList = ["Popularity", "Price Low to High", "Price High to Low"];
 export default function ProductListings({ products }) {
   const [searchText, setSearchText] = useState(""); // handles changes in input search
   const [sortType, setPopularity] = useState("Popularity"); // handles changes in filter sort by
+
+  let filteredAndSortedProducts =  useMemo(() => {
+    let filteredProducts = products.filter((product) => {
+      return (
+        product.name.toLowerCase().includes(searchText.toLowerCase()) ||
+        product.description.toLowerCase().includes(searchText.toLowerCase())
+      );
+    });
+
+    return filteredProducts.slice().sort((a, b) => {
+      switch (sortType) {
+        case "Price Low to High":
+          return parseFloat(a.price) - parseFloat(b.price);
+        case "Price High to Low":
+          return parseFloat(b.price) - parseFloat(a.price);
+        case "Popularity":
+        default:
+          return parseInt(b.popularity) - parseInt(a.popularity);
+      }
+    });
+  }, [products, searchText, sortType]);
 
   function handleSearchChange(inputSearch) {
     setSearchText(inputSearch);
@@ -19,32 +40,13 @@ export default function ProductListings({ products }) {
     console.log(sortType);
   }
 
-  let filteredAndSortedProducts = products.filter((product) => {
-    return (
-      product.name.toLowerCase().includes(searchText.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchText.toLowerCase())
-    );
-  });
-
-  switch (sortType) {
-    case "Price Low to High":
-      filteredAndSortedProducts = filteredAndSortedProducts.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
-      break;
-    case "Price High to Low":
-      filteredAndSortedProducts = filteredAndSortedProducts.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
-      break;
-    case "Popularity":
-    default:
-      filteredAndSortedProducts = filteredAndSortedProducts.sort((a, b) => parseInt(a.popularity) - parseInt(b.popularity));
-      break;
-  }
 
   return (
     <div className="product-listings-container">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-12">
         <SearchBox
           label="Search  "
-          placeholder="Search products..."
+          placeholder="Search Stickers..."
           value={searchText}
           handleSearchChange={(value) => handleSearchChange(value)}
         />
